@@ -15,11 +15,27 @@ dashboard "account_report" {
     }
 
     card {
-      title = "Last month"
-      query = query.cost_last_month
+      title = "Forcast this month"
+      query = query.cost_forcast
       width = 3
     }
 
+  }
+
+  container {
+    title = "History"
+    chart {
+      title = "Cost Overview Last (6) Months"
+      width = 16
+      type  = "column"
+      query = query.cost_last_months
+      axes {
+        y {
+          title { value = "Cost [$]" }
+          min = 0
+        }
+      }
+    }
   }
 
   #   table {
@@ -48,10 +64,23 @@ query "cost_this_month" {
   EOQ
 }
 
-query "cost_last_month" {
+query "cost_forcast" {
   sql = <<-EOQ
     select
-        sum(net_unblended_cost_amount) :: numeric :: money as "Costs"
+        mean_value :: numeric :: money as "Costs"
+    from
+        aws_cost_forecast_monthly
+    order by
+        period_start 
+    limit 1;
+    EOQ
+}
+
+query "cost_last_months" {
+  sql = <<-EOQ
+    select
+        to_char(period_start, 'Mon-YY') as Month,
+        sum(net_unblended_cost_amount) :: numeric as "Costs"
     from
         aws_cost_usage
     where
@@ -62,8 +91,7 @@ query "cost_last_month" {
         period_start
     order by
         period_start desc
-    offset 1
-    limit 1;
+    limit 6;
   EOQ
 }
 
