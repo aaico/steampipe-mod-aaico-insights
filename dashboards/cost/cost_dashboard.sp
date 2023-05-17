@@ -37,9 +37,14 @@ query "cost_this_month" {
     from
         aws_cost_usage
     where
-        granularity = 'MONTHLY' and to_char(period_start, 'Mon-YY') = to_char(now(), 'Mon-YY')
+        granularity = 'MONTHLY'
         and dimension_type_1 = 'LINKED_ACCOUNT'
         and dimension_type_2 = 'SERVICE'
+    group by
+        period_start
+    order by
+        period_start desc
+    limit 1;
   EOQ
 }
 
@@ -50,9 +55,15 @@ query "cost_last_month" {
     from
         aws_cost_usage
     where
-        granularity = 'MONTHLY' and to_char(period_start, 'Mon-YY') = to_char(now() - interval '1' month, 'Mon-YY')
+        granularity = 'MONTHLY'
         and dimension_type_1 = 'LINKED_ACCOUNT'
         and dimension_type_2 = 'SERVICE'
+    group by
+        period_start
+    order by
+        period_start desc
+    offset 1
+    limit 1;
   EOQ
 }
 
